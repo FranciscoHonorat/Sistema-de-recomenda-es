@@ -1,5 +1,30 @@
+import openai
 import pandas as pd
 import os
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def enrich_course_data_with_openai(df):
+    """
+    Usa a OpenAI para enriquecer os dados dos cursos, gerando descrições ou categorias.
+    """
+    for index, row in df.iterrows():
+        try:
+            prompt = f"Crie uma breve descrição para o curso: {row['title']}."
+            response = openai.Completion.create(
+                engine="text-davinci-003",
+                prompt=prompt,
+                max_tokens=50,
+                n=1,
+                stop=None,
+                temperature=0.7,
+            )
+            # Adicionar a descrição gerada ao DataFrame
+            df.at[index, 'description'] = response.choices[0].text.strip()
+        except Exception as e:
+            print(f"Erro ao gerar descrição para o curso '{row['title']}': {e}")
+            df.at[index, 'description'] = "Descrição não disponível."
+    return df
 
 def load_and_preprocess_data():
     # Verificar se o arquivo existe
@@ -34,5 +59,7 @@ def load_and_preprocess_data():
     # Exibir o DataFrame após o preprocessamento
     print("DataFrame após o preprocessamento:")
     print(df.head())
+
+    df = enrich_course_data_with_openai(df)
 
     return df

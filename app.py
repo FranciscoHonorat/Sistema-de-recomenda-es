@@ -2,6 +2,27 @@ from flask import Flask, render_template, request
 from data_processor import load_and_preprocess_data
 from recommender import train_model
 import pandas as pd
+import openai
+import os
+
+#Configuração da chave da API do OpenAI
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def get_openai_recommendations(keyword):
+    try:
+        prompt = f"Recomende cursos relacionados à palavra-chave '{keyword}' com base nos dados disponíveis."
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=100,
+            n=1,
+            stop=None,
+            temperature=0.5
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        print(f"Erro ao chamar a API do OpenAI: {e}")
+        return None
 
 app = Flask(__name__)
 
@@ -39,7 +60,22 @@ def recommend():
 
         # Verificar se há cursos correspondentes
         if filtered_df.empty:
-            return f"Erro: Nenhum curso encontrado para a palavra-chave '{keyword}'.", 400
+            # Usar a OpenAI para gerar uma recomendação
+            openai_recommendation = get_openai_recommendation(keyword)
+            if openai_recommendation:
+                return render_template(
+                    'index.html',
+                    keyword=keyword,
+                    recommended_course={
+                        'title': openai_recommendation,
+                        'autor': "OpenAI",
+                        'participantes': "N/A",
+                        'notas': "N/A",
+                        'feature': "N/A"
+                    }
+                )
+            else:
+                return f"Erro: Nenhum curso encontrado para a palavra-chave '{keyword}', e a OpenAI não pôde gerar uma recomendação.", 400
 
         # Ordenar os cursos filtrados pela feature (descendente)
         recommended_course = filtered_df.sort_values(by='feature', ascending=False).iloc[0]
