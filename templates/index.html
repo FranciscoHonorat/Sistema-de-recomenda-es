@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendador de Cursos</title>
+</head>
+<body>
+    <h1>Bem-vindo ao Recomendador de Cursos</h1>
+
+    <form action="/recommend" method="POST">
+        <label for="keyword">Digite o tipo de curso que você gosta:</label>
+        <input type="text" id="keyword" name="keyword" placeholder="Ex: Programação, Matemática">
+        <button type="submit">Recomendar</button>
+    </form>
+
+    {% if recommended_course %}
+        <h2>Curso Recomendado para "{{ keyword }}":</h2>
+        <p><strong>Título:</strong> {{ recommended_course.title }}</p>
+        <p><strong>Autor:</strong> {{ recommended_course.autor }}</p>
+        <p><strong>Participantes:</strong> {{ recommended_course.participantes }}</p>
+        <p><strong>Nota:</strong> {{ recommended_course.notas }}</p>
+        <p><strong>Feature:</strong> {{ recommended_course.feature }}</p>
+    {% endif %}
+</body>
+</html>
